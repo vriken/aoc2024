@@ -1,41 +1,57 @@
 with open('C:\\Users\\vrike\\Downloads\\input.txt', 'r') as file:
     data = file.read().strip().split('\n')
 
-def simulate_guard_movement(grid):
-    directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]  # Up, Right, Down, Left
-    direction_index = 0
 
-    for i, row in enumerate(grid):
-        for j, cell in enumerate(row):
-            if cell in ['^', '>', 'v', '<']:
-                start_pos = (i, j)
-                if cell == '^':
-                    direction_index = 0
-                elif cell == '>':
-                    direction_index = 1
-                elif cell == 'v':
-                    direction_index = 2
-                elif cell == '<':
-                    direction_index = 3
-                break
+directions = {
+    'U': {'dx': -1, 'dy': 0},
+    'D': {'dx': 1, 'dy': 0},
+    'L': {'dx': 0, 'dy': -1},
+    'R': {'dx': 0, 'dy': 1}
+}
 
-    visited = set()
-    x, y = start_pos
-    visited.add((x, y))
+def turn_right(direction):
+    if direction == 'U':
+        return 'R'
+    if direction == 'D':
+        return 'L'
+    if direction == 'L':
+        return 'U'
+    if direction == 'R':
+        return 'D'
 
-    while 0 <= x < len(grid) and 0 <= y < len(grid):
-        dx, dy = directions[direction_index]
-        nx, ny = x + dx, y + dy
+def find_start_position():
+    for i in range(len(data)):
+        for j in range(len(data[0])):
+            if data[i][j] == '^':
+                data[i] = list(data[i])
+                data[i][j] = '.'
+                data[i] = ''.join(data[i])
+                return {'x': i, 'y': j, 'direction': 'U'}
 
-        if 0 <= nx < len(grid) and 0 <= ny < len(grid) and grid[nx][ny] == '#':
-            direction_index = (direction_index + 1) % 4  # Turn right
+
+start_position = find_start_position()
+
+def simulate_guard_movement():
+    current_position = start_position.copy()
+    visited_positions = set()
+    
+    while True:
+        x, y, direction = current_position['x'], current_position['y'], current_position['direction']
+        visited_positions.add(f"{x},{y}")
+        
+        dx, dy = directions[direction]['dx'], directions[direction]['dy']
+        next_x, next_y = x + dx, y + dy
+        
+        if next_x < 0 or next_x >= len(data) or next_y < 0 or next_y >= len(data[0]):
+            break
+        
+        if data[next_x][next_y] == '#':
+            current_position = {'x': x, 'y': y, 'direction': turn_right(direction)}
         else:
-            x, y = nx, ny
-            if not (0 <= x < len(grid) and 0 <= y < len(grid)):
-                break
-            visited.add((x, y))
-
-    return len(visited)
+            current_position = {'x': next_x, 'y': next_y, 'direction': direction}
+    
+    return {'visited_positions': visited_positions}
 
 if __name__ == '__main__':
-    print(simulate_guard_movement(data))
+    result = simulate_guard_movement()
+    print("Total visited positions:", len(result['visited_positions']))
