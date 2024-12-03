@@ -30,4 +30,5 @@ for command in commands:
         all_calculations.append([result, 0])
 
 totals = [sum(column) for column in zip(*all_calculations)]
+
 print(totals[0])
