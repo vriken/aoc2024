@@ -16,7 +16,6 @@ def parse_disk_map(disk_map):
 
     return blocks
 
-
 def move_blocks(blocks):
     for i in range(len(blocks) - 1, -1, -1):
         if blocks[i] != -1:
@@ -26,6 +25,25 @@ def move_blocks(blocks):
                     break
     return blocks
 
+def move_files(blocks):
+    max_file_id = max(blocks)
+    for file_id in range(max_file_id, -1, -1):
+        file_positions = [i for i, block in enumerate(blocks) if block == file_id]
+        if not file_positions:
+            continue
+
+        file_size = len(file_positions)
+
+        for i in range(len(blocks) - file_size + 1):
+            if all(block == -1 for block in blocks[i:i + file_size]):
+
+                for pos in file_positions:
+                    blocks[pos] = -1
+                for j in range(file_size):
+                    blocks[i + j] = file_id
+                break
+
+    return blocks
 
 def calculate_checksum(blocks):
     checksum = 0
@@ -34,10 +52,10 @@ def calculate_checksum(blocks):
             checksum += position * block
     return checksum
 
-
 def main(disk_map):
     parsed_blocks = parse_disk_map(disk_map)
-    compacted_blocks = move_blocks(parsed_blocks)
+    # compacted_blocks = move_blocks(parsed_blocks)
+    compacted_blocks = move_files(parsed_blocks)
     checksum = calculate_checksum(compacted_blocks)
     return checksum
 
